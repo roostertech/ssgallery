@@ -34,7 +34,8 @@ var deserialdata = {},
 
 function convertJSON(d) {
     d = d || {};
-    if (!d.columns && !d.rows) return console.error("convertJSON() >>  was not passed a serialized obj"), [];
+    if (!d.columns && !d.rows) 
+		return console.error("convertJSON() >>  was not passed a serialized obj"), [];
     for (var g = [], b = 0; b < d.rows.length; b++) {
         for (var c = {}, a = 0; a < d.columns.length; a++) {
 			if (isNaN(d.rows[b][a])) {
@@ -42,7 +43,8 @@ function convertJSON(d) {
 					c[d.columns[a].toLowerCase()] = 0;
 				} else {
 					if (-1 != d.columns[a].toLowerCase().search("name")) {
-						c[d.columns[a].toLowerCase()] = '<a href="#" class="unitName notranslate">' + d.rows[b][a] + "</a>";
+						// c[d.columns[a].toLowerCase()] = '<a href="#" class="unitName notranslate">' + d.rows[b][a] + "</a>";
+						c[d.columns[a].toLowerCase()] = d.rows[b][a];
 					} else {
 						if ("http" == d.rows[b][a].substr(0, 4) ) {
 							c[d.columns[a].toLowerCase()] = '<img src="' + d.rows[b][a] + '" width="40" />';
@@ -64,9 +66,16 @@ function convertJSON(d) {
     return g
 }
 
+function pad(num, size) {
+    var s = num+"";
+    while (s.length < size) s = "0" + s;
+    return s;
+}
 
 function initialize() {
-	var g = encodeURIComponent("SELECT 'Number','Name','Attack', 'HP','Grade','Class','Type' FROM " + gTable + " ORDER BY 'Number' ASC"),
+	var g = encodeURIComponent("SELECT 'Number','Number','Name','Attack', 'HP' FROM " + gTable + " ORDER BY 'Number' ASC"),
+	//var g = encodeURIComponent("SELECT 'Number','Name','Attack', 'HP','Grade','Class','Type' FROM " + gTable + " ORDER BY 'Number' ASC"),
+	
 	b = [gURL];
     b.push("?sql=" + g);
     b.push("&key=" + gKey);
@@ -79,29 +88,46 @@ function initialize() {
         dataType: "jsonp",
         success: function(b) {
             ajaxDataRows = b.rows;
-			console.log(b)
+			console.log(ajaxDataRows)
             deserialdata = convertJSON(b);
+
 			console.log(deserialdata);
             ssTable = $("#mytable").dataTable({
 				data: ajaxDataRows,
-				order: [[0, "asc"]]
+				deferRender:true,
+				order: [[0, "asc"]],
+				pageLength: 50,                
+				columnDefs: [
+				{
+					targets: [1],
+                    type: "number",
+                    width: "10",
+                    render: function(data, type, row, meta) {
+	                   	return '<img src="http://dohmbqfq7aa9j.cloudfront.net/card_t_' + pad(data,3) + '.jpg" width="40" />'
+                    }
+                },
+				{
+					targets: [2],
+                    type: "string",
+                    width: "10",
+                    render: function(data, type, row, meta) {
+                        return '<div class="statsInfo" data-toggle="tooltip" title="Name">' + data + '</div>'
+                    }
+                }
+				]
             });
 		}
 	});
 }
     </script>
     <body>
-        <div class="jumbotron">
-            <div class="container">
-                <h1>Hello, world!</h1>
-                <p>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+	    <div class="container-fluid">
 
-            </div>
-        </div>
-		<table id="mytable" class="table-bordered table-responsive table-hover table-striped table-condensed" style="display:none;clear:both;" width="100%">
+		<table id="mytable" class="table-bordered table-responsive table-hover table-striped table-condensed" style="clear:both;" width="100%">
 	            <thead>
 	                <tr>
 	                    <th>Number</th>
+	                    <th>Icon</th>
 	                    <th>Name</th>
 		                <th>Attack</th>
 			            <th>HP</th>	                    
@@ -110,12 +136,14 @@ function initialize() {
 	            <tfoot>
 	                <tr>
 		                <th>Number</th>
-	                    <th>Name</th>
+	                    <th>Icon</th>
+		                <th>Name</th>
 		                <th>Attack</th>
 			            <th>HP</th>	                    
 	                </tr>
 	            </tfoot>
 		 </table>
+		</div>
 		<script type="text/javascript">
 $(document).ready(function(d) {
 	initialize();	
