@@ -96,9 +96,12 @@ function gooShorten(d) {
 }
 
 function initialize() {
-	var g = encodeURIComponent("SELECT 'Number','Number','Name','Attack', 'HP' FROM " + gTable + " ORDER BY 'Number' ASC"),
+    var COL_STAR = 1;
+    var COL_THUMB_NUM = 2;
+    var COL_NAME = 3;
+
+	var g = encodeURIComponent("SELECT 'Number','Grade','Number','Name','Attack', 'HP' FROM " + gTable + " ORDER BY 'Number' ASC"),
 	//var g = encodeURIComponent("SELECT 'Number','Name','Attack', 'HP','Grade','Class','Type' FROM " + gTable + " ORDER BY 'Number' ASC"),
-	
 	b = [gURL];
     b.push("?sql=" + g);
     b.push("&key=" + gKey);
@@ -122,7 +125,7 @@ function initialize() {
 				pageLength: 50,                
 				columnDefs: [
 				{
-					targets: [1],
+					targets: [COL_THUMB_NUM],
                     type: "number",
                     width: "10",
                     render: function(data, type, row, meta) {
@@ -130,15 +133,23 @@ function initialize() {
                     }
                 },
 				{
-					targets: [2],
+					targets: [COL_NAME],
                     type: "string",
                     width: "10",
                     render: function(data, type, row, meta) {
 	                    return'<a href="#" class="unitName notranslate">' + data + "</a>";
                         // return '<div class="statsInfo" data-toggle="tooltip" title="Name">' + data + '</div>'
                     }
+                },
+                {
+                    targets: [COL_STAR],
+                    type: "number",
+                    width: "10",
+                    render: function(data, type, row, meta) {
+                        return'<i class="fa fa-star">' + data + '</i>';
+                    }
                 }
-				],
+                ],
 				initComplete: function(a, b) {
 					$("#mytable").show();                    
 					$("#progressModal").modal("hide");                    
@@ -201,7 +212,8 @@ function openCard(cardName) {
 	            <thead>
 	                <tr>
 	                    <th>Number</th>
-	                    <th>Icon</th>
+                        <th>Rarity</th>
+                        <th>Icon</th>
 	                    <th>Name</th>
 		                <th>Attack</th>
 			            <th>HP</th>	                    
@@ -210,6 +222,7 @@ function openCard(cardName) {
 	            <tfoot>
 	                <tr>
 		                <th>Number</th>
+                        <th>Rarity</th>
 	                    <th>Icon</th>
 		                <th>Name</th>
 		                <th>Attack</th>
