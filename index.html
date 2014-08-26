@@ -4,13 +4,15 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Bootstrap 101 Template</title>
+        <title>Spirit Stones Gallery</title>
                     
         <!-- Bootstrap -->
-        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-        <link rel="stylesheet" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 
-        <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/plug-ins/be7019ee387/integration/bootstrap/3/dataTables.bootstrap.css">                  
+        <link rel="stylesheet" href="//cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" >
+        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/plug-ins/be7019ee387/integration/bootstrap/3/dataTables.bootstrap.css">
                         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
                         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
                         <!--[if lt IE 9]>
@@ -23,13 +25,14 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript">
 var deserialdata = {},
 	gURL = "https://www.googleapis.com/fusiontables/v1/query",
-	gTable = "1DznHrRz7_N_Dv38oxq4lTlh_NSENeQNrb87NYY9q";
-    gKey ="AIzaSyBFl_aA6lmwGzscXcWgoFhWdYnAJKAf5vg";
+	gTable = "1DznHrRz7_N_Dv38oxq4lTlh_NSENeQNrb87NYY9q",
+    gKey ="AIzaSyBFl_aA6lmwGzscXcWgoFhWdYnAJKAf5vg",
+    cardThumbPrefix = "http://dohmbqfq7aa9j.cloudfront.net/card_t_";
 
 
 function convertJSON(d) {
@@ -43,8 +46,8 @@ function convertJSON(d) {
 					c[d.columns[a].toLowerCase()] = 0;
 				} else {
 					if (-1 != d.columns[a].toLowerCase().search("name")) {
-						// c[d.columns[a].toLowerCase()] = '<a href="#" class="unitName notranslate">' + d.rows[b][a] + "</a>";
-						c[d.columns[a].toLowerCase()] = d.rows[b][a];
+						c[d.columns[a].toLowerCase()] = '<a href="#" class="unitName notranslate">' + d.rows[b][a] + "</a>";
+						// c[d.columns[a].toLowerCase()] = d.rows[b][a];
 					} else {
 						if ("http" == d.rows[b][a].substr(0, 4) ) {
 							c[d.columns[a].toLowerCase()] = '<img src="' + d.rows[b][a] + '" width="40" />';
@@ -66,10 +69,30 @@ function convertJSON(d) {
     return g
 }
 
+function sconvertJSON(d) {
+    d = d || {};
+    if (!d.columns && !d.rows) return console.error("sconvertJSON() >>  was not passed a serialized obj"), [];
+    for (var g = [], b = 0; b < d.rows.length; b++) {
+        for (var c = {}, a = 0; a < d.columns.length; a++) !isNaN(d.rows[b][a]) || -1 == d.columns[a].toLowerCase().search("hits") && -1 == d.columns[a].toLowerCase().search("fill") && -1 == d.columns[a].toLowerCase().search("zel") && -1 == d.columns[a].toLowerCase().search("hp") && -1 == d.columns[a].toLowerCase().search("atk") && -1 == d.columns[a].toLowerCase().search("def") && -1 == d.columns[a].toLowerCase().search("rec") && -1 == d.columns[a].toLowerCase().search("cost") ? c[d.columns[a].toLowerCase()] = d.rows[b][a] : c[d.columns[a].toLowerCase()] = "-";
+        g.push(c)
+    }
+    return g
+}
+
 function pad(num, size) {
     var s = num+"";
     while (s.length < size) s = "0" + s;
     return s;
+}
+
+function gooShorten(d) {
+    return $.ajax({
+        type: "POST",
+        async: !1,
+        url: "https://www.googleapis.com/urlshortener/v1/url?fields=id&key=" + gKey,
+        contentType: "application/json; charset=utf-8",
+        data: '{ longUrl: "' + d + '"}'
+    }).responseText
 }
 
 function initialize() {
@@ -81,7 +104,7 @@ function initialize() {
     b.push("&key=" + gKey);
     b.push("&callback=?");
 
-	console.log(b)
+	console.log(b);
 	
     $.ajax({
         url: b.join(""),
@@ -111,7 +134,8 @@ function initialize() {
                     type: "string",
                     width: "10",
                     render: function(data, type, row, meta) {
-                        return '<div class="statsInfo" data-toggle="tooltip" title="Name">' + data + '</div>'
+	                    return'<a href="#" class="unitName notranslate">' + data + "</a>";
+                        // return '<div class="statsInfo" data-toggle="tooltip" title="Name">' + data + '</div>'
                     }
                 }
 				],
@@ -122,6 +146,52 @@ function initialize() {
             });
 		}
 	});
+}
+function openCard(cardName) {
+    $("#unitCardHome").html('<h4><i class="fa fa-cog fa-spin"></i> Summoning ' + cardName + ' ... please wait</h4><div class="progress progress-striped active"><div class="progress-bar progress-bar-success"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"><span class="sr-only">100% Complete</span></div></div>');
+    $("#cardModal").modal("show");
+    $('.nav-tabs a[href="#unitCardHome"]').tab("show");
+
+    // generate link
+    //locationUrl = location.protocol + "//" + location.host + location.pathname + "?unit=" + encodeURIComponent(cardName);
+    //var g = JSON.parse(gooShorten(locationUrl)).id;
+
+    cardName = cardName.replace("'", "\\'");
+    sql = encodeURIComponent("SELECT * FROM " + gTable + " WHERE 'Name' = " + ("'" + cardName + "'"));
+    var query = [gURL];
+    query.push("?sql=" + sql);
+    query.push("&key=" + gKey);
+    query.push("&callback=?");
+
+    $.ajax({
+        url: query.join(""),
+        dataType: "jsonp",
+        success: function (result) {
+            ovdata2 = sconvertJSON(result);
+            console.log(ovdata2);
+
+            name = ovdata2[0].name;
+            number = ovdata2[0].number;
+            grade = ovdata2[0].grade;
+            attack = ovdata2[0].attack;
+            hp = ovdata2[0].hp;
+
+            console.log(name);
+
+            cardHtml = '<table class="table table-bordered table-condensed small" style="border-top:0px;"><tbody>';
+            cardHtml += '<tr>';
+            cardHtml += '<td style="text-align:center;vertical-align:middle;border:0px;"><img src="' + cardThumbPrefix + pad(number,3) + '.jpg" width="70"></td>';
+            cardHtml += '<td colspan="5" style="border:0px;"><h3><kbd>' + number + '</kbd> ' + name + '<br><small><i class="fa fa-star">' + grade +' </i> </small></h3></td>';
+            cardHtml += '</tr>';
+            cardHtml += '<tr>';
+            cardHtml += '<td class="active"><strong>HP</strong></td><td>' + hp + '</td>';
+            cardHtml += '<td class="active"><strong>Attack</strong></td><td>' + attack + '</td>';
+            cardHtml += '</tr>';
+            cardHtml += '</tr></tbody></table>'
+            $("#unitCardHome").html(cardHtml);
+        }
+    });
+
 }
     </script>
     <body>
@@ -161,6 +231,24 @@ function initialize() {
 	            </div>
 	        </div>
 	    </div>
+	    <div class="modal fade" id="cardModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	        <div class="modal-dialog">
+		        <div class="modal-content">
+	                <div class="modal-body">
+						<button type="button" class="close" style="position:absolute;z-index:99;top:-18px;right:-18px;" data-dismiss="modal" aria-hidden="true"><span class="fa-stack"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-times fa-inverse fa-stack-1x"></i></span>
+	                    </button>
+	                    <ul class="nav nav-tabs" role="tablist">
+	                        <li class="active"><a href="#unitCardHome" role="tab" data-toggle="tab"><strong><i class="fa fa-book"></i> Unit Card</strong></a>
+	                        </li>
+						</ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade in active" id="unitCardHome"></div>
+
+                        </div>
+                    </div>
+				</div>
+			</div>
+		</div>
 		<script type="text/javascript">
 $(document).ready(function(d) {
 	$("#progressModal").modal({
@@ -168,7 +256,15 @@ $(document).ready(function(d) {
         backdrop: "static",
         toggle: false
     });
-	initialize();	
+	initialize();
+	$(document).on("click", ".unitName", function(b) {
+        var c = {
+            stateUnit: $(this).text()
+        };
+        // history.pushState(c, "test state", "?unit=" + encodeURIComponent($(this).text()));
+        openCard($(this).text());
+        b.preventDefault()
+    });
 });
         </script>
     </body>
