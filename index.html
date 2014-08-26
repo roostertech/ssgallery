@@ -32,8 +32,8 @@ var deserialdata = {},
 	gURL = "https://www.googleapis.com/fusiontables/v1/query",
 	gTable = "1DznHrRz7_N_Dv38oxq4lTlh_NSENeQNrb87NYY9q",
     gKey ="AIzaSyBFl_aA6lmwGzscXcWgoFhWdYnAJKAf5vg",
-    cardThumbPrefix = "http://dohmbqfq7aa9j.cloudfront.net/card_t_";
-
+    cardThumbPrefix = "http://dohmbqfq7aa9j.cloudfront.net/card_t_",
+    cardChibPrefix = "http://dohmbqfq7aa9j.cloudfront.net/medium/unit_";
 
 function convertJSON(d) {
     d = d || {};
@@ -95,10 +95,16 @@ function gooShorten(d) {
     }).responseText
 }
 
+function bfpAlert(d, g) {
+    $("#alertSpace").html('<i class="fa fa-fire-extinguisher"></i> <strong>' + d + ":</strong> " + g);
+    $("#alertmodal").modal("show")
+}
+
 function initialize() {
     var COL_STAR = 1;
     var COL_THUMB_NUM = 2;
     var COL_NAME = 3;
+    var COL_FEATURES = 8;
 
 	var g = encodeURIComponent("SELECT 'Number','Grade','Number','Name','Attack','HP','Skill','BSkill' FROM " + gTable + " ORDER BY 'Number' ASC"),
 	//var g = encodeURIComponent("SELECT 'Number','Name','Attack', 'HP','Grade','Class','Type' FROM " + gTable + " ORDER BY 'Number' ASC"),
@@ -148,7 +154,16 @@ function initialize() {
                     render: function(data, type, row, meta) {
                         return'<i class="fa fa-star">' + data + '</i>';
                     }
+                },
+                {
+                    targets: COL_FEATURES,
+                    orderable: false,
+                    render: function(data, type, row, meta) {
+                        a = '<div style="white-space:nowrap;"><a href="#" value="' + row[2] + '" class="compareUnit"><div class="btn btn-success btn-sm"><i class="fa fa-plus"></i> <i class="fa fa-male"></i></div></a> ';
+                        return a;
+                    }
                 }
+
                 ],
 				initComplete: function(a, b) {
 					$("#mytable").show();                    
@@ -194,7 +209,7 @@ function openCard(cardName) {
 
             cardHtml = '<table class="table table-bordered table-condensed small" style="border-top:0px;"><tbody>';
             cardHtml += '<tr>';
-            cardHtml += '<td style="text-align:center;vertical-align:middle;border:0px;" width="80"><img src="' + cardThumbPrefix + pad(number,3) + '.jpg" width="70"></td>';
+            cardHtml += '<td style="text-align:center;vertical-align:middle;border:0px;" width="80"><img src="' + cardChibPrefix + pad(number,3) + '.png" width="70"></td>';
             cardHtml += '<td colspan="3" style="border:0px;"><h3><kbd>' + number + '</kbd> ' + name + '<br><small><i class="fa fa-star">' + grade +' </i> </small></h3></td>';
             cardHtml += '</tr>';
             cardHtml += '<tr>';
@@ -207,14 +222,22 @@ function openCard(cardName) {
             cardHtml += '<tr><<td colspan="4" >' + desc + '</td></tr>';
 
             cardHtml += '</tbody></table>'
+            console.log(cardHtml)
             $("#unitCardHome").html(cardHtml);
         }
     });
 
 }
+
+function openCompare(d) {
+    $("#compareModal").modal("show");
+    $("#compareTable").html('<tr><td><h4><i class="fa fa-cog fa-spin"></i> Summoning cards to compare ... please wait</h4><div class="progress progress-striped active"><div class="progress-bar progress-bar-danger"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"><span class="sr-only">100% Complete</span></div></div></td></tr>');
+
+}
     </script>
     <body>
 	    <div class="container-fluid">
+        <button id="compareBtn" type="button" class="btn navbar-right btn-primary navbar-btn nav-tt" data-toggle="tooltip" title="Squad Compare &amp; features" style="margin-right:5px;"><i class="fa fa-male"></i><i class="fa fa-female"></i> </a></button>
 
 		<table id="mytable" class="table-bordered table-responsive table-hover table-striped table-condensed" style="display:none;clear:both;" width="100%">
 	            <thead>
@@ -227,6 +250,7 @@ function openCard(cardName) {
 			            <th>HP</th>
                         <th>Skill</th>
                         <th>Battle Skill</th>
+                        <th style="white-space:nowrap;background:#FFCC00;">Features</th>
                     </tr>
 	            </thead>
 	            <tfoot>
@@ -239,7 +263,8 @@ function openCard(cardName) {
 			            <th>HP</th>
                         <th>Skill</th>
                         <th>Battle Skill</th>
-	                </tr>
+                        <th style="white-space:nowrap;background:#FFCC00;">Features</th>
+                    </tr>
 	            </tfoot>
 		 </table>
 		</div>
@@ -265,21 +290,52 @@ function openCard(cardName) {
 	                    <ul class="nav nav-tabs" role="tablist">
 	                        <li class="active"><a href="#unitCardHome" role="tab" data-toggle="tab"><strong><i class="fa fa-book"></i> Unit Card</strong></a>
 	                        </li>
+                            <li><a href="#unitCardArt" role="tab" data-toggle="tab"><i class="fa fa-photo"></i> Unit Art</a>
+                            </li>
 						</ul>
                         <div class="tab-content">
                             <div class="tab-pane fade in active" id="unitCardHome"></div>
-
+                            <div class="tab-pane fade" id="unitCardArt">
+                                <div id="unitimageacc"></div>
+                            </div>
                         </div>
                     </div>
 				</div>
 			</div>
 		</div>
+        <div class="modal fade" id="compareModal" tabindex="-1" role="dialog" aria-labelledby="compareModal" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <button type="button" class="close" style="position:absolute;z-index:99;top:-18px;right:-18px;" data-dismiss="modal" aria-hidden="true"><span class="fa-stack"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-times fa-inverse fa-stack-1x"></i></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="alertmodal" tabindex="-1" role="dialog" aria-labelledby="alertmodal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h3 class="modal-title text-danger"><i class="fa fa-fire"></i> Seria SCREAMS!</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div id="alertSpace" class="alert"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div style="color:#888888;width:100%;margin:0 0 50px 0;font-size:10pt;text-align:center;">
-            Inspired by / copied form <a href="http://bravefrontierpros.tumblr.com/">Brave Frontier Pros</a><br>
-            Created by rooster
+            Inspired by / copied from <a href="http://bravefrontierpros.tumblr.com/">Brave Frontier Pros</a><br>
+            Adapted to Spirit Stones by rooster
         </div>
         <script type="text/javascript">
 $(document).ready(function(d) {
+    window.compareSelect = [];
+    window.compareSelectURL = "";
+
 	$("#progressModal").modal({
         keyboard: false,
         backdrop: "static",
@@ -293,6 +349,19 @@ $(document).ready(function(d) {
         // history.pushState(c, "test state", "?unit=" + encodeURIComponent($(this).text()));
         openCard($(this).text());
         b.preventDefault()
+    });
+
+    $(document).on("click", ".compareUnit", function(b) {
+        b.preventDefault();
+        $(this).children("div").hasClass("btn-success") ? 6 > compareSelect.length ? (compareSelect.push($(this).attr("value")), $(this).children("div").removeClass("btn-success"), $(this).children("div").addClass("btn-danger"), $(this).children("div").html('<i class="fa fa-minus"></i> <i class="fa fa-female"></i>')) : bfpAlert("Max units selected", 'You can only select maximum of 6 units to compare / calculate evolution materials and for squad sprite simulation.<div class="text-right"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>') : (compareSelect.splice(compareSelect.indexOf($(this).attr("value")), 1), $(this).children("div").removeClass("btn-danger"), $(this).children("div").addClass("btn-success"), $(this).children("div").html('<i class="fa fa-plus"></i> <i class="fa fa-male"></i>'))
+    });
+
+    $(document).on("click", "#compareBtn", function(b) {
+        b.preventDefault();
+        2 > compareSelect.length ? bfpAlert("Too few units", 'You need to select at least 2 cards to compare. Use  <div class="btn btn-success btn-sm"><i class="fa fa-plus"></i> <i class="fa fa-male"></i></div> to add units.<div class="text-right"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>') :
+                (compareSelectURL = compareSelect.join(), openCompare(compareSelect), history.pushState({
+            stateCompare: compareSelectURL
+        }, "compare state", "?compare=" + encodeURIComponent(compareSelectURL)))
     });
 });
         </script>
