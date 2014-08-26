@@ -100,7 +100,7 @@ function initialize() {
     var COL_THUMB_NUM = 2;
     var COL_NAME = 3;
 
-	var g = encodeURIComponent("SELECT 'Number','Grade','Number','Name','Attack', 'HP' FROM " + gTable + " ORDER BY 'Number' ASC"),
+	var g = encodeURIComponent("SELECT 'Number','Grade','Number','Name','Attack','HP','Skill','BSkill' FROM " + gTable + " ORDER BY 'Number' ASC"),
 	//var g = encodeURIComponent("SELECT 'Number','Name','Attack', 'HP','Grade','Class','Type' FROM " + gTable + " ORDER BY 'Number' ASC"),
 	b = [gURL];
     b.push("?sql=" + g);
@@ -122,7 +122,7 @@ function initialize() {
 				data: ajaxDataRows,
 				deferRender:true,
 				order: [[0, "asc"]],
-				pageLength: 50,                
+				pageLength: 20,
 				columnDefs: [
 				{
 					targets: [COL_THUMB_NUM],
@@ -186,19 +186,27 @@ function openCard(cardName) {
             grade = ovdata2[0].grade;
             attack = ovdata2[0].attack;
             hp = ovdata2[0].hp;
+            desc = ovdata2[0].description;
+            skill = ovdata2[0].skill;
+            bskill = ovdata2[0].bskill;
 
             console.log(name);
 
             cardHtml = '<table class="table table-bordered table-condensed small" style="border-top:0px;"><tbody>';
             cardHtml += '<tr>';
-            cardHtml += '<td style="text-align:center;vertical-align:middle;border:0px;"><img src="' + cardThumbPrefix + pad(number,3) + '.jpg" width="70"></td>';
-            cardHtml += '<td colspan="5" style="border:0px;"><h3><kbd>' + number + '</kbd> ' + name + '<br><small><i class="fa fa-star">' + grade +' </i> </small></h3></td>';
+            cardHtml += '<td style="text-align:center;vertical-align:middle;border:0px;" width="80"><img src="' + cardThumbPrefix + pad(number,3) + '.jpg" width="70"></td>';
+            cardHtml += '<td colspan="3" style="border:0px;"><h3><kbd>' + number + '</kbd> ' + name + '<br><small><i class="fa fa-star">' + grade +' </i> </small></h3></td>';
             cardHtml += '</tr>';
             cardHtml += '<tr>';
             cardHtml += '<td class="active"><strong>HP</strong></td><td>' + hp + '</td>';
-            cardHtml += '<td class="active"><strong>Attack</strong></td><td>' + attack + '</td>';
+            cardHtml += '<td class="active" width="70"><strong>Attack</strong></td><td>' + attack + '</td>';
             cardHtml += '</tr>';
-            cardHtml += '</tr></tbody></table>'
+
+            cardHtml += '<tr><td class="active"><strong>Skill</strong></td><td colspan="3" >' + skill + '</td></tr>';
+            cardHtml += '<tr><td class="active"><strong>Battle Skill</strong></td><td colspan="3" >' + bskill + '</td></tr>';
+            cardHtml += '<tr><<td colspan="4" >' + desc + '</td></tr>';
+
+            cardHtml += '</tbody></table>'
             $("#unitCardHome").html(cardHtml);
         }
     });
@@ -216,8 +224,10 @@ function openCard(cardName) {
                         <th>Icon</th>
 	                    <th>Name</th>
 		                <th>Attack</th>
-			            <th>HP</th>	                    
-	                </tr>
+			            <th>HP</th>
+                        <th>Skill</th>
+                        <th>Battle Skill</th>
+                    </tr>
 	            </thead>
 	            <tfoot>
 	                <tr>
@@ -226,7 +236,9 @@ function openCard(cardName) {
 	                    <th>Icon</th>
 		                <th>Name</th>
 		                <th>Attack</th>
-			            <th>HP</th>	                    
+			            <th>HP</th>
+                        <th>Skill</th>
+                        <th>Battle Skill</th>
 	                </tr>
 	            </tfoot>
 		 </table>
@@ -262,7 +274,11 @@ function openCard(cardName) {
 				</div>
 			</div>
 		</div>
-		<script type="text/javascript">
+        <div style="color:#888888;width:100%;margin:0 0 50px 0;font-size:10pt;text-align:center;">
+            Inspired by / copied form <a href="http://bravefrontierpros.tumblr.com/">Brave Frontier Pros</a><br>
+            Created by rooster
+        </div>
+        <script type="text/javascript">
 $(document).ready(function(d) {
 	$("#progressModal").modal({
         keyboard: false,
