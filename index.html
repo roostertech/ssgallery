@@ -33,6 +33,7 @@ var deserialdata = {},
 	gTable = "1DznHrRz7_N_Dv38oxq4lTlh_NSENeQNrb87NYY9q",
     gKey ="AIzaSyBFl_aA6lmwGzscXcWgoFhWdYnAJKAf5vg",
     cardThumbPrefix = "http://dohmbqfq7aa9j.cloudfront.net/card_t_",
+    cardPrefix = "http://dohmbqfq7aa9j.cloudfront.net/card_",
     cardChibPrefix = "http://dohmbqfq7aa9j.cloudfront.net/medium/unit_";
 
 function convertJSON(d) {
@@ -159,7 +160,7 @@ function initialize() {
                     targets: COL_FEATURES,
                     orderable: false,
                     render: function(data, type, row, meta) {
-                        a = '<div style="white-space:nowrap;"><a href="#" value="' + row[2] + '" class="compareUnit"><div class="btn btn-success btn-sm"><i class="fa fa-plus"></i> <i class="fa fa-male"></i></div></a> ';
+                        a = '<div style="white-space:nowrap;"><a href="#" value="' + row[0] + '" class="compareUnit"><div class="btn btn-success btn-sm"><i class="fa fa-plus"></i> <i class="fa fa-male"></i></div></a> ';
                         return a;
                     }
                 }
@@ -184,6 +185,7 @@ function openCard(cardName) {
 
     cardName = cardName.replace("'", "\\'");
     sql = encodeURIComponent("SELECT * FROM " + gTable + " WHERE 'Name' = " + ("'" + cardName + "'"));
+    console.log(sql);
     var query = [gURL];
     query.push("?sql=" + sql);
     query.push("&key=" + gKey);
@@ -224,6 +226,8 @@ function openCard(cardName) {
             cardHtml += '</tbody></table>'
             console.log(cardHtml)
             $("#unitCardHome").html(cardHtml);
+            $("#unitimageacc").html('<img src="' + cardPrefix + pad(number,3) + '.jpg" class="img-responsive" />');
+
         }
     });
 
@@ -233,6 +237,64 @@ function openCompare(d) {
     $("#compareModal").modal("show");
     $("#compareTable").html('<tr><td><h4><i class="fa fa-cog fa-spin"></i> Summoning cards to compare ... please wait</h4><div class="progress progress-striped active"><div class="progress-bar progress-bar-danger"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"><span class="sr-only">100% Complete</span></div></div></td></tr>');
 
+    var unitnames = ""
+    for (var c = 0; c < d.length; c++) {
+        unitnames += "'" + d[c].replace("'", "\\'") + "'", c != d.length - 1 && (unitnames += ",");
+    }
+    sql = encodeURIComponent("SELECT * FROM " + gTable + " WHERE 'Number' IN (" + unitnames + ")");
+    console.log(sql);
+    request = [gURL];
+    request.push("?sql=" + sql);
+    request.push("&key=" + gKey);
+    request.push("&callback=?");
+
+    $.ajax({
+        url: request.join(""),
+        dataType: "jsonp",
+
+        success: function (result) {
+            cData = sconvertJSON(result);
+            console.log(cData);
+            tWidth = Math.round(100 * (1 / (d.length + 1))) + 1;
+
+            cHTML = "<tbody><tr><td>&nbsp;</td>";
+            for (a = 0; a < d.length; a++) {
+                cHTML += '<td width="' + tWidth + '%"><img src="' + cardPrefix + pad(cData[a].number,3) + '.jpg" width="60" /></td>';
+            }
+            cHTML += "</tr>";
+            cHTML += '<tr><td class = "active">Card Number / Name</td>';
+            for (a = 0; a < d.length; a++) {
+                cHTML += '<td><kbd>' + cData[a].number + '</kbd>&nbsp;'+ cData[a].name +'</td>"'
+            }
+            cHTML += "</tr>";
+
+            cHTML += '<tr><td class = "active">Attack</td>';
+            for (a = 0; a < d.length; a++) {
+                cHTML += '<td>' + cData[a].attack + '</td>"'
+            }
+            cHTML += "</tr>";
+
+            cHTML += '<tr><td class = "active">Hitpoints</td>';
+            for (a = 0; a < d.length; a++) {
+                cHTML += '<td>' + cData[a].hp + '</td>"'
+            }
+            cHTML += "</tr>";
+
+            cHTML += '<tr><td class = "active">Skill</td>';
+            for (a = 0; a < d.length; a++) {
+                cHTML += '<td>' + cData[a].skill + '</td>"'
+            }
+            cHTML += "</tr>";
+
+            cHTML += '<tr><td class = "active">Battle Skill</td>';
+            for (a = 0; a < d.length; a++) {
+                cHTML += '<td>' + cData[a].bskill + '</td>"'
+            }
+            cHTML += "</tr>";
+
+            $("#compareTable").html(cHTML);
+        }
+    });
 }
     </script>
     <body>
@@ -309,6 +371,15 @@ function openCompare(d) {
                     <div class="modal-body">
                         <button type="button" class="close" style="position:absolute;z-index:99;top:-18px;right:-18px;" data-dismiss="modal" aria-hidden="true"><span class="fa-stack"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-times fa-inverse fa-stack-1x"></i></span>
                         </button>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="active"><a href="#unitCompareHome" role="tab" data-toggle="tab"><kbd><i class="fa fa-male"></i><i class="fa fa-female"></i></kbd> Compare Units</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade in active" id="unitCompareHome">
+                                <table id="compareTable" class="table table-hover table-striped table-bordered table-responsive table-condensed small"></table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
