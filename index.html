@@ -14,12 +14,7 @@
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/colvis/1.1.0/css/dataTables.colVis.css">
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/plug-ins/be7019ee387/integration/bootstrap/3/dataTables.bootstrap.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" >
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+
     <style type="text/css">
         .purple {
             background: #FFDB4D;
@@ -54,7 +49,7 @@
 </head>
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script src="//cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
@@ -64,48 +59,63 @@
 <script type="text/javascript">
 var deserialdata = {},
         gURL = "https://www.googleapis.com/fusiontables/v1/query",
-// Prod table
-//	gTable = "1DznHrRz7_N_Dv38oxq4lTlh_NSENeQNrb87NYY9q",
-//    gTable = "1L1M9mdTyZP37XWraS1NV13rp-U0L_jDPT3sg7Gsb",
-// Dev table
-        gTable = "1ep7ZnC-kUDPyvqr7Kn8uVcjnNqlHuFRLe6XKfnab",
+        gTable = "1uz3IT9DmXFwUnacdHmtvHgoZppCoDajyomJMBFlo",
         gKey ="AIzaSyBFl_aA6lmwGzscXcWgoFhWdYnAJKAf5vg",
         cardThumbPrefix = "http://dohmbqfq7aa9j.cloudfront.net/card_t_",
         cardPrefix = "http://dohmbqfq7aa9j.cloudfront.net/card_",
         cardChibPrefix = "http://dohmbqfq7aa9j.cloudfront.net/medium/unit_";
 
-function convertJSON(d) {
-    d = d || {};
-    if (!d.columns && !d.rows)
+var lvAtkGain = [0,2,2,2, 2, 3, 4, 4, 4, 4];
+var lvHpGain =  [0,6,7,10,10,12,13,13,15,15];
+var lvPlusAtkGain = [0,2,2,3, 3, 3, 4, 4, 4, 4];
+var lvPlusHpGain =  [0,7,8,10,11,13,14,14,15,15];
+
+var COL_NUMBER = 0;
+var COL_STAR = COL_NUMBER+1;
+var COL_THUMB_NUM = COL_STAR+1;
+var COL_CLASS = COL_THUMB_NUM+1;
+var COL_NAME = COL_CLASS+1;
+var COL_ATTK = COL_NAME+1;
+var COL_HP = COL_ATTK+1;
+var COL_COST = COL_HP+1;
+var COL_SKILL = COL_COST+1;
+var COL_BSKILL = COL_SKILL+1;
+var COL_FEATURES = COL_BSKILL+1;
+
+function convertJSON(serialObj) {
+    serialObj = serialObj || {};
+    if (!serialObj.columns && !serialObj.rows)
         return console.error("convertJSON() >>  was not passed a serialized obj"), [];
-    for (var g = [], b = 0; b < d.rows.length; b++) {
-        for (var c = {}, a = 0; a < d.columns.length; a++) {
-            if (isNaN(d.rows[b][a])) {
-                if (-1 != d.columns[a].toLowerCase().search("hits") || -1 != d.columns[a].toLowerCase().search("fill") || -1 != d.columns[a].toLowerCase().search("lord") ) {
-                    c[d.columns[a].toLowerCase()] = 0;
+
+    var result = [];
+    for (b = 0; b < serialObj.rows.length; b++) {
+        for (var c = {}, a = 0; a < serialObj.columns.length; a++) {
+            if (isNaN(serialObj.rows[b][a])) {
+                if (-1 != serialObj.columns[a].toLowerCase().search("hits") || -1 != serialObj.columns[a].toLowerCase().search("fill") || -1 != serialObj.columns[a].toLowerCase().search("lord") ) {
+                    c[serialObj.columns[a].toLowerCase()] = 0;
                 } else {
-                    if (-1 != d.columns[a].toLowerCase().search("name")) {
-                        c[d.columns[a].toLowerCase()] = '<a href="#" class="unitName notranslate">' + d.rows[b][a] + "</a>";
-                        // c[d.columns[a].toLowerCase()] = d.rows[b][a];
+                    if (-1 != serialObj.columns[a].toLowerCase().search("name")) {
+                        c[serialObj.columns[a].toLowerCase()] = '<a href="#" class="unitName notranslate">' + serialObj.rows[b][a] + "</a>";
+                        // c[serialObj.columns[a].toLowerCase()] = serialObj.rows[b][a];
                     } else {
-                        if ("http" == d.rows[b][a].substr(0, 4) ) {
-                            c[d.columns[a].toLowerCase()] = '<img src="' + d.rows[b][a] + '" width="40" />';
+                        if ("http" == serialObj.rows[b][a].substr(0, 4) ) {
+                            c[serialObj.columns[a].toLowerCase()] = '<img src="' + serialObj.rows[b][a] + '" width="40" />';
                         } else {
-                            c[d.columns[a].toLowerCase()] = d.rows[b][a];
+                            c[serialObj.columns[a].toLowerCase()] = serialObj.rows[b][a];
                         }
                     }
                 }
             } else {
-                if ("" == d.rows[b][a])	{
-                    c[d.columns[a].toLowerCase()] = "None"
+                if ("" == serialObj.rows[b][a])	{
+                    c[serialObj.columns[a].toLowerCase()] = "None"
                 } else {
-                    c[d.columns[a].toLowerCase()] = parseInt(d.rows[b][a]);
+                    c[serialObj.columns[a].toLowerCase()] = parseInt(serialObj.rows[b][a]);
                 }
             }
         }
-        g.push(c)
+        result.push(c)
     }
-    return g
+    return result
 }
 
 function urlParam(d) {
@@ -113,14 +123,29 @@ function urlParam(d) {
     return null == d ? "" : decodeURIComponent(d[1]) || ""
 }
 
-function sconvertJSON(d) {
-    d = d || {};
-    if (!d.columns && !d.rows) return console.error("sconvertJSON() >>  was not passed a serialized obj"), [];
-    for (var g = [], b = 0; b < d.rows.length; b++) {
-        for (var c = {}, a = 0; a < d.columns.length; a++) !isNaN(d.rows[b][a]) || -1 == d.columns[a].toLowerCase().search("hits") && -1 == d.columns[a].toLowerCase().search("fill") && -1 == d.columns[a].toLowerCase().search("zel") && -1 == d.columns[a].toLowerCase().search("hp") && -1 == d.columns[a].toLowerCase().search("atk") && -1 == d.columns[a].toLowerCase().search("def") && -1 == d.columns[a].toLowerCase().search("rec") && -1 == d.columns[a].toLowerCase().search("cost") ? c[d.columns[a].toLowerCase()] = d.rows[b][a] : c[d.columns[a].toLowerCase()] = "-";
-        g.push(c)
+/*2nd style convert of Google JSON REST*/
+function sconvertJSON( serialObj ) {
+    var s = serialObj || {};
+    if( !s.columns && !s.rows )
+    {
+        console.error("sconvertJSON() >>  was not passed a serialized obj");
+        return [];
     }
-    return g
+    var obj = [];
+    for(var i=0; i < s.rows.length; i++)
+    {
+        var temp = {};
+        for(var j=0; j < s.columns.length; j++)
+        { /*check for NaN values*/
+            if (isNaN(s.rows[i][j])) {
+                temp[s.columns[j].toLowerCase()] = s.rows[i][j];
+            } else {
+                temp[s.columns[j].toLowerCase()] = parseInt(s.rows[i][j]);
+            }
+        }
+        obj.push(temp);
+    }
+    return obj;
 }
 
 function pad(num, size) {
@@ -129,6 +154,19 @@ function pad(num, size) {
     return s;
 }
 
+function getMaxHp(card) {
+    if (card.name.indexOf('+') > -1) {
+        return card.hp + lvPlusHpGain[card.grade] * (card.maxlv - 1);
+    }
+    return card.hp + lvHpGain[card.grade] * (card.maxlv - 1);
+
+}
+function getMaxAtk(card) {
+    if (card.name.indexOf('+') > -1) {
+        return card.attack + lvPlusAtkGain[card.grade] * (card.maxlv - 1);
+    }
+    return card.attack + lvAtkGain[card.grade] * (card.maxlv - 1);
+}
 function gooShorten(d) {
     return $.ajax({
         type: "POST",
@@ -144,19 +182,22 @@ function bfpAlert(d, g) {
     $("#alertmodal").modal("show")
 }
 
+function getImageUrl(imgFile) {
+    return 'https://googledrive.com/host/0Bwkd3dnTnPLvM2RxTEJhejF5VVU/' + imgFile;
+}
 function getClass(cardClass) {
     switch (cardClass) {
-        case '1':
-            return '<p class="warrior">Warrior</p>'
+        case 1:
+            return '<img src="' + getImageUrl('uicard_0_small.png') + '"/><span class="warrior"> Warrior</span>'
             break;
-        case '2':
-            return '<p class="mage">Mage</p>'
+        case 2:
+            return '<img src="' + getImageUrl('uicard_1_small.png') + '"/><span class="mage"> Mage</span>'
             break;
-        case '3':
-            return '<p class="archer">Archer</p>'
+        case 3:
+            return '<img src="' + getImageUrl('uicard_3_small.png') + '"/><span class="archer"> Archer</span>'
             break;
-        case '4':
-            return '<p class="thief">Thief</p>'
+        case 4:
+            return '<img src="' + getImageUrl('uicard_2_small.png') + '"/><span class="thief"> Thief</span>'
             break;
         default:
             return ''
@@ -165,17 +206,7 @@ function getClass(cardClass) {
 }
 
 function initialize() {
-    var COL_NUMBER = 0;
-    var COL_STAR = COL_NUMBER+1;
-    var COL_THUMB_NUM = COL_STAR+1;
-    var COL_CLASS = COL_THUMB_NUM+1;
-    var COL_NAME = COL_CLASS+1;
-    var COL_ATTK = COL_NAME+1;
-    var COL_HP = COL_ATTK+1;
-    var COL_COST = COL_HP+1;
-    var COL_SKILL = COL_COST+1;
-    var COL_BSKILL = COL_SKILL+1;
-    var COL_FEATURES = COL_BSKILL+1;
+
 
     var g = encodeURIComponent("SELECT 'Number','Grade','Number','Class','Name','Attack','HP','Cost','Skill','BSkill' FROM " + gTable + " ORDER BY 'Number' ASC"),
     //var g = encodeURIComponent("SELECT 'Number','Name','Attack', 'HP','Grade','Class','Type' FROM " + gTable + " ORDER BY 'Number' ASC"),
@@ -230,13 +261,13 @@ function initialize() {
                         width: "10",
                         orderable : false,
                         render: function(data, type, row, meta) {
-                            return '<img src="http://dohmbqfq7aa9j.cloudfront.net/card_t_' + pad(data,3) + '.jpg" width="40" />'
+                            return '<img class="unitThumb" src="http://dohmbqfq7aa9j.cloudfront.net/card_t_' + pad(data,3) + '.jpg" width="40" />'
                         }
                     },
                     {
                         targets: [COL_CLASS],
                         render: function(data, type, row, meta) {
-                            return getClass(data)
+                            return getClass(parseInt(data))
                         }
                     },
                     {
@@ -277,6 +308,10 @@ function initialize() {
                     "" != f && null != f && (openCard(f), $("#cardModal").modal("show"));
                     f = urlParam("compare");
                     "" != f && null != f && (f = f.split(","), openCompare(f));
+
+                    $('#unitThumb').error(function() {
+                        $(this).attr('src',"https://googledrive.com/host/0B4hJr8BXxvFZQk1JcFBvT2xEMUk/spriteNone.gif");
+                    })
                 }
             });
         }
@@ -340,8 +375,11 @@ function openCard(cardName) {
             cardHtml += '</tr>';
 
             cardHtml += '<tr>';
-            cardHtml += '<td class="active"><strong>HP</strong></td><td>' + hp + '</td>';
-            cardHtml += '<td class="active" width="70"><strong>Attack</strong></td><td>' + attack + '</td>';
+            cardHtml += '<td class="active" width="100"><div class="statsInfo" data-toggle="tooltip" data-placement="bottom"  title="Lv 1 -> Max Lv"><i class="fa fa-info-circle"></i> <b>HP</b></div></td>';
+            cardHtml += '<td>' + hp +  ' <i class="fa fa-caret-right"></i> ' + getMaxHp(card) + '</td>';
+
+            cardHtml += '<td class="active" width="100"><div class="statsInfo" data-toggle="tooltip" data-placement="bottom"  title="Lv 1 -> Max Lv"><i class="fa fa-info-circle"></i> <b>Attack</b></div></td>';
+            cardHtml += '<td>' + attack + ' <i class="fa fa-caret-right"></i> ' + getMaxAtk(card) + '</td>';
             cardHtml += '</tr>';
 
             cardHtml += '<tr><td class="active"><strong>Skill</strong></td><td colspan="3" >' + skill + '</td></tr>';
@@ -412,15 +450,15 @@ function openCompare(units) {
             }
             cHTML += "</tr>";
 
-            cHTML += '<tr><td class = "active">Attack</td>';
+            cHTML += '<td class="active" width="100"><div class="statsInfo" data-toggle="tooltip" data-placement="bottom"  title="Lv 1 -> Max Lv"><i class="fa fa-info-circle"></i> <b>Attack</b></div></td>';
             for (a = 0; a < units.length; a++) {
-                cHTML += '<td>' + cData[a].attack + '</td>"'
+                cHTML += '<td>' + cData[a].attack + ' <i class="fa fa-caret-right"></i> ' + getMaxAtk(cData[a]) + ' </td>'
             }
             cHTML += "</tr>";
 
-            cHTML += '<tr><td class = "active">Hitpoints</td>';
+            cHTML += '<td class="active" width="100"><div class="statsInfo" data-toggle="tooltip" data-placement="bottom"  title="Lv 1 -> Max Lv"><i class="fa fa-info-circle"></i> <b>HP</b></div></td>';
             for (a = 0; a < units.length; a++) {
-                cHTML += '<td>' + cData[a].hp + '</td>"'
+                cHTML += '<td>' + cData[a].hp + ' <i class="fa fa-caret-right"></i> ' + getMaxHp(cData[a]) + ' </td>'
             }
             cHTML += "</tr>";
 
@@ -451,13 +489,26 @@ function openCompare(units) {
 
 <div class="container-fluid">
     <div class="btn-group navbar-right navbar-btn" id="compareButtonGroup" style="margin-right:5px;">
+        <ul class="nav navbar-nav navbar-left">
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-search"></i> <small>Select</small><b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#" class="selectUnit" value="435|436|456|457|462|463|472|473|524|525|530|531"> HB Reward Card</a></li>
+                    <li><a href="#" class="selectUnit" value="402|403|404|405|406|407|408|409|441|442|443|444|468|469|470|471|486|487|488|489"> Lysis Boss Card</a></li>
+                    <li class="dropdown-header">By class</li>
+                    <li><a href="#" class="selectClass" value="Warrior"><img src="https://googledrive.com/host/0Bwkd3dnTnPLvM2RxTEJhejF5VVU/uicard_0_small.png"/> Warrior</a></li>
+                    <li><a href="#" class="selectClass" value="Mage"><img src="https://googledrive.com/host/0Bwkd3dnTnPLvM2RxTEJhejF5VVU/uicard_1_small.png"/> Mage</a></li>
+                    <li><a href="#" class="selectClass" value="Thief"><img src="https://googledrive.com/host/0Bwkd3dnTnPLvM2RxTEJhejF5VVU/uicard_2_small.png"/> Thief</a></li>
+                    <li><a href="#" class="selectClass" value="Archer"><img src="https://googledrive.com/host/0Bwkd3dnTnPLvM2RxTEJhejF5VVU/uicard_3_small.png"/> Archer</a></li>
+                </ul>
+            </li>
+        </ul>
         <button id="compareBtn" type="button" class="btn btn-primary navbar-btn nav-tt" data-toggle="tooltip" title="Compare cards" style="margin-right:5px;">
             <i class="fa fa-male"></i>
-            <i class="fa fa-female"></i> Compare </a>
+            <i class="fa fa-female"></i> Compare
         </button>
         <button id="resetbtn" type="button" class="btn nav-tt navbar-right btn-danger navbar-btn" data-toggle="tooltip" title="Reset / Reload DB" style="margin-right:5px;"><i class="fa fa-power-off fa-lg"></i>
         </button>
-
     </div>
 </div>
 <div class="container-fluid">
@@ -610,17 +661,38 @@ function openCompare(units) {
                 }, "compare state", "?compare=" + encodeURIComponent(compareSelectURL)))
             }
         });
+        $(document).on("click", ".selectClass", function(e){
+            var ssTable = $('#mytable').DataTable();
+            e.preventDefault();
 
-        var g = function() {
-            var b = 0;
+            searchValue = $(this).attr("value");
+            console.log('Searching for ' + searchValue);
+            ssTable.column(COL_CLASS).search(searchValue);
+            ssTable.draw();
+            window.scrollTo(0,0);
+        })
+
+        $(document).on("click", ".selectUnit", function(e){
+            var ssTable = $('#mytable').DataTable();
+            e.preventDefault();
+
+            searchValue = $(this).attr("value");
+            console.log('Searching for ' + searchValue);
+            ssTable.column(COL_NUMBER).search(searchValue, true, false);
+            ssTable.draw();
+            window.scrollTo(0,0);
+        })
+
+        var delay = function() {
+            var timer = 0;
             return function(c, a) {
-                clearTimeout(b);
-                b = setTimeout(c, a)
+                clearTimeout(timer);
+                timer = setTimeout(c, a)
             }
         }();
 
         $(document).on("keyup", ".dataTables_filter input", function(b) {
-            g(function() {
+            delay(function() {
                 $("#mytable").DataTable().search($(".dataTables_filter input").val()).draw();
                 if (13 == b.which) {
                     var c = {
@@ -636,6 +708,7 @@ function openCompare(units) {
             history.pushState(null, null, location.pathname);
             location.reload(!0)
         });
+
 
         $(window).on("popstate", function(b) {
             var c = b.originalEvent.state;
